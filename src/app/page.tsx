@@ -21,12 +21,23 @@ import {
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Skeleton } from "src/components/ui/skeleton";
+import { useClientId } from "src/lib/client-id";
 import { albumKeys, albumsOptions } from "src/lib/query-options";
 import { createAlbumMutationOptions } from "src/lib/query-options/mutations";
 import { cn } from "src/lib/utils";
 
 export default function HomePage() {
-  const { data, isLoading } = useQuery(albumsOptions());
+  const clientId = useClientId();
+  const { data, isLoading, error, isError } = useQuery({
+    ...albumsOptions(),
+    enabled: Boolean(clientId),
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message === "Não autorizado") {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
   const queryClient = useQueryClient();
   const create = useMutation({
     ...createAlbumMutationOptions,
@@ -88,6 +99,15 @@ export default function HomePage() {
           <div className="space-y-3">
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
+          </div>
+        ) : isError ? (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
+            <p className="text-sm text-destructive">Erro ao carregar álbuns.</p>
+            {error?.message && (
+              <p className="mt-1 text-xs text-destructive/80">
+                {error.message}
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

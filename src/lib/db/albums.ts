@@ -252,14 +252,7 @@ export async function createOrRegenerateInvite(
   const token = generateInviteToken();
   const now = new Date();
 
-  await collection.updateOne(
-    { _id: new ObjectId(id) },
-    {
-      $pull: { invites: { role: input.role } },
-    },
-  );
-
-  await collection.updateOne(
+  const updated = await collection.findOneAndUpdate(
     { _id: new ObjectId(id) },
     {
       $push: {
@@ -271,7 +264,10 @@ export async function createOrRegenerateInvite(
       },
       $set: { updatedAt: now },
     },
+    { returnDocument: "after" },
   );
+
+  if (!updated) return null;
 
   return {
     token,
