@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Panini WC 2026 — Controle de Figurinhas
 
-## Getting Started
+Aplicativo web mobile-first para acompanhar a coleção de figurinhas da Copa do Mundo 2026.
 
-First, run the development server:
+## Funcionalidades
+
+- Criar álbuns sem cadastro (identificação por `clientId` armazenado no navegador).
+- Marcar figurinhas como possuídas, faltantes ou repetidas.
+- Compartilhar álbuns via convites com senha (editor/visualizador).
+- Recuperar acesso colando o `clientId` de outro dispositivo.
+- Catálogo local das figurinhas da Copa 2026 em `albums/wc2026/album.json`.
+
+## Tecnologias
+
+- Next.js 16 (App Router)
+- React 19 + React Compiler
+- TypeScript
+- Tailwind CSS 4 + shadcn/ui
+- MongoDB
+- TanStack Query
+- Zod
+- Biome
+
+## Requisitos
+
+- Node.js 20+
+- pnpm
+- Docker e Docker Compose (para MongoDB local)
+
+## Como rodar
+
+1. Instale as dependências:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Inicie o MongoDB:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm start:infra
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Copie as variáveis de ambiente:
 
-## Learn More
+```bash
+cp .env.local.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Inicie o servidor de desenvolvimento:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Abra [http://localhost:3000](http://localhost:3000) no navegador.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Comando            | Descrição                              |
+| ------------------ | -------------------------------------- |
+| `pnpm dev`         | Servidor de desenvolvimento            |
+| `pnpm build`       | Build de produção                      |
+| `pnpm start`       | Servidor de produção                   |
+| `pnpm lint`        | Verificação com Biome                  |
+| `pnpm format`      | Formatação com Biome                   |
+| `pnpm start:infra` | Sobe o MongoDB via Docker Compose      |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estrutura
+
+```
+albums/wc2026/album.json   # Catálogo de figurinhas
+src/app/api/               # API routes do Next.js
+src/app/                   # Páginas
+src/components/            # Componentes reutilizáveis
+src/lib/                   # Utilitários, schemas, db, query options
+```
+
+## Identificação do dispositivo
+
+O aplicativo gera um UUID por navegador e armazena em `localStorage` com a chave `panini:clientId`. Esse ID é enviado no header `X-Client-Id` de todas as requisições e determina quais álbuns você pode acessar.
+
+Para usar o mesmo álbum em outro dispositivo, copie o ID em **Configurações** e cole na tela inicial usando o botão de importar.
+
+## Convites
+
+Na página de compartilhamento de um álbum, é possível criar convites com token e senha. Quem receber o link e a senha pode entrar no álbum com o papel de editor ou visualizador.
+
+## Deploy
+
+O projeto pode ser deployado em qualquer plataforma que suporte Next.js. Certifique-se de configurar a variável `MONGODB_URI` no ambiente de produção.
