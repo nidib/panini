@@ -19,11 +19,25 @@ export function getClientId(): string {
   return clientId;
 }
 
+export function setClientId(clientId: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(STORAGE_KEY, clientId);
+}
+
+export function clearClientId(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.removeItem(STORAGE_KEY);
+}
+
 export function useClientId(): string | null {
-  const [clientId, setClientId] = useState<string | null>(null);
+  const [clientId, setClientIdState] = useState<string | null>(null);
 
   useEffect(() => {
-    setClientId(getClientId());
+    setClientIdState(getClientId());
   }, []);
 
   return clientId;

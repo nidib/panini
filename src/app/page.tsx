@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Import, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { AppShell } from "src/components/app-shell";
@@ -21,7 +21,7 @@ import {
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Skeleton } from "src/components/ui/skeleton";
-import { useClientId } from "src/lib/client-id";
+import { setClientId, useClientId } from "src/lib/client-id";
 import { albumKeys, albumsOptions } from "src/lib/query-options";
 import { createAlbumMutationOptions } from "src/lib/query-options/mutations";
 import { cn } from "src/lib/utils";
@@ -50,6 +50,9 @@ export default function HomePage() {
 
   const [open, setOpen] = useState(false);
   const [nickname, setNickname] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [importClientId, setImportClientId] = useState("");
+  const [importError, setImportError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,42 +60,106 @@ export default function HomePage() {
     create.mutate({ nickname: nickname.trim(), albumType: "wc2026" });
   };
 
+  const handleImport = (e: React.FormEvent) => {
+    e.preventDefault();
+    setImportError("");
+
+    const trimmed = importClientId.trim();
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    if (!uuidRegex.test(trimmed)) {
+      setImportError("ID do dispositivo inválido.");
+      return;
+    }
+
+    setClientId(trimmed);
+    setImportOpen(false);
+    window.location.reload();
+  };
+
   return (
     <AppShell>
       <div className="space-y-4 p-4">
         <header className="flex items-center justify-between">
           <h1 className="text-xl font-bold">Meus Álbuns</h1>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="icon" variant="outline" aria-label="Criar álbum">
-                <Plus className="size-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-sm">
-              <DialogHeader>
-                <DialogTitle>Criar novo álbum</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="nickname">Nome do álbum</Label>
-                  <Input
-                    id="nickname"
-                    placeholder="Ex: Meu Álbum Principal"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    maxLength={100}
-                  />
-                </div>
+          <div className="flex items-center gap-2">
+            <Dialog open={importOpen} onOpenChange={setImportOpen}>
+              <DialogTrigger asChild>
                 <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={create.isPending}
+                  size="icon"
+                  variant="outline"
+                  aria-label="Importar ID do dispositivo"
                 >
-                  {create.isPending ? "Criando..." : "Criar álbum"}
+                  <Import className="size-5" />
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Importar ID do dispositivo</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleImport} className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="import-client-id">ID do dispositivo</Label>
+                    <Input
+                      id="import-client-id"
+                      placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                      value={importClientId}
+                      onChange={(e) => setImportClientId(e.target.value)}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck="false"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Cole o ID de outro dispositivo para acessar os mesmos
+                      álbuns. O ID atual será substituído.
+                    </p>
+                  </div>
+                  {importError && (
+                    <p className="text-sm text-destructive">{importError}</p>
+                  )}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={!importClientId.trim()}
+                  >
+                    Importar e recarregar
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button size="icon" variant="outline" aria-label="Criar álbum">
+                  <Plus className="size-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Criar novo álbum</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="nickname">Nome do álbum</Label>
+                    <Input
+                      id="nickname"
+                      placeholder="Ex: Meu Álbum Principal"
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      maxLength={100}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={create.isPending}
+                  >
+                    {create.isPending ? "Criando..." : "Criar álbum"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </header>
 
         {isLoading ? (
