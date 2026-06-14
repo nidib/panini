@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Lock, LockOpen, Search, Share2, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -12,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "src/components/app-shell";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
+import { useClientId } from "src/lib/client-id";
 import { albumKeys, albumOptions } from "src/lib/query-options";
 import { stickerOperationMutationOptions } from "src/lib/query-options/mutations";
 import { extractStickerNumber, getQuantity } from "src/lib/sticker";
@@ -28,8 +25,12 @@ type FilterKey = (typeof FILTERS)[number]["key"];
 export default function AlbumPage() {
   const params = useParams();
   const albumId = params.id as string;
+  const clientId = useClientId();
 
-  const { data: album } = useSuspenseQuery(albumOptions(albumId));
+  const { data: album, isLoading } = useQuery({
+    ...albumOptions(albumId),
+    enabled: Boolean(albumId) && Boolean(clientId),
+  });
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
@@ -37,13 +38,12 @@ export default function AlbumPage() {
   const [locked, setLocked] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const canEdit = album.role === "owner" || album.role === "editor";
+  const canEdit = album?.role === "owner" || album?.role === "editor";
   const isLocked = locked || !canEdit;
 
   const mutate = useMutation({
     ...stickerOperationMutationOptions,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: albumKeys.detail(albumId) });
       queryClient.invalidateQueries({ queryKey: albumKeys.list() });
     },
   });
@@ -102,7 +102,7 @@ export default function AlbumPage() {
 
   const handleDecrement = useCallback(
     (stickerCode: string) => {
-      if (isLocked) return;
+      if (isLocked || !album) return;
       const current = getQuantity(album.counts, stickerCode);
       if (current <= 0) return;
       pendingRef.current[stickerCode] =
@@ -119,7 +119,7 @@ export default function AlbumPage() {
       });
       scheduleSync();
     },
-    [album.counts, albumId, isLocked, queryClient, scheduleSync],
+    [album, albumId, isLocked, queryClient, scheduleSync],
   );
 
   useEffect(() => {
@@ -129,6 +129,8 @@ export default function AlbumPage() {
   }, [applyPending]);
 
   const filteredSections = useMemo(() => {
+    if (!album) return [];
+
     const term = search.trim().toLowerCase();
 
     return album.catalog.stickers
@@ -165,7 +167,7 @@ export default function AlbumPage() {
           } | null,
         },
       ).sections;
-  }, [album.catalog.stickers, album.counts, filter, search]);
+  }, [album, filter, search]);
 
   return (
     <AppShell>
@@ -178,7 +180,7 @@ export default function AlbumPage() {
               </Link>
             </Button>
             <h1 className="line-clamp-1 text-lg font-semibold">
-              {album.nickname}
+              {album?.nickname ?? "Álbum"}
             </h1>
           </div>
           <div className="flex items-center gap-1">
@@ -250,7 +252,11 @@ export default function AlbumPage() {
       </div>
 
       <div className="space-y-2 p-4">
-        {filteredSections.length === 0 ? (
+        {isLoading ? (
+          <p className="py-8 text-center text-muted-foreground">
+            Carregando...
+          </p>
+        ) : filteredSections.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">
             Nenhuma figurinha encontrada.
           </p>
@@ -266,7 +272,7 @@ export default function AlbumPage() {
                     key={sticker.code}
                     code={sticker.code}
                     name={sticker.name}
-                    quantity={getQuantity(album.counts, sticker.code)}
+                    quantity={getQuantity(album?.counts ?? {}, sticker.code)}
                     onIncrement={() => handleIncrement(sticker.code)}
                     onDecrement={() => handleDecrement(sticker.code)}
                     disabled={isLocked}
@@ -325,7 +331,7 @@ function StickerButton({
     cancelLongPress();
   };
 
-  const duplicateCount = quantity > 1 ? quantity : null;
+  const duplicateCount = quantity > 1 ? quantity - 1 : null;
   const state =
     quantity === 0 ? "missing" : quantity === 1 ? "owned" : "duplicate";
 

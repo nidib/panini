@@ -180,18 +180,24 @@ export async function applyStickerOperation(
   const delta = operation.operation === "increment" ? 1 : -1;
   const now = new Date();
 
-  const update =
-    delta > 0
-      ? { $inc: { [field]: delta }, $set: { updatedAt: now } }
-      : {
-          $inc: { [field]: delta },
-          $set: { updatedAt: now },
-          $max: { [field]: 0 },
-        };
-
   const updated = await collection.findOneAndUpdate(
     { _id: new ObjectId(id) },
-    update,
+    [
+      {
+        $set: {
+          [field]: {
+            $cond: [
+              { $gt: [delta, 0] },
+              { $add: [{ $ifNull: [`$${field}`, 0] }, delta] },
+              {
+                $max: [0, { $subtract: [{ $ifNull: [`$${field}`, 0] }, 1] }],
+              },
+            ],
+          },
+          updatedAt: now,
+        },
+      },
+    ],
     { returnDocument: "after" },
   );
 

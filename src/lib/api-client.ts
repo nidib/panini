@@ -3,13 +3,27 @@ import { getClientId } from "src/lib/client-id";
 
 const API_PREFIX = "/api";
 
+function getBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    return "";
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+}
+
 export async function apiFetchJson<T>(
   input: RequestInfo | URL,
   init?: RequestInit,
 ): Promise<T> {
   const clientId = getClientId();
 
-  const response = await fetch(input, {
+  const url = typeof input === "string" ? `${getBaseUrl()}${input}` : input;
+
+  const response = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
