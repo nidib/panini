@@ -84,4 +84,60 @@ export const joinInviteInputSchema = z.object({
 
 export type JoinInviteInput = z.infer<typeof joinInviteInputSchema>;
 
+export const inviteOutputSchema = z.object({
+  token: z.string(),
+  role: z.enum(["editor", "viewer"]),
+  password: z.string(),
+});
+
+export type InviteOutput = z.infer<typeof inviteOutputSchema>;
+
+export const albumSummarySchema = z.object({
+  id: z.string(),
+  nickname: z.string(),
+  albumType: z.string(),
+  role: roleSchema,
+  isOwned: z.boolean(),
+  ownerClientId: z.string().uuid(),
+  totalStickers: z.number().int(),
+  ownedCount: z.number().int(),
+  missingCount: z.number().int(),
+  duplicateCount: z.number().int(),
+  updatedAt: z.string().datetime(),
+});
+
+export type AlbumSummary = z.infer<typeof albumSummarySchema>;
+
+export const albumDetailSchema = z.object({
+  id: z.string(),
+  nickname: z.string(),
+  albumType: z.string(),
+  role: roleSchema,
+  isOwned: z.boolean(),
+  ownerClientId: z.string().uuid(),
+  members: z.array(
+    z.object({
+      clientId: z.string().uuid(),
+      role: roleSchema,
+    }),
+  ),
+  catalog: albumCatalogSchema,
+  counts: z.record(z.string(), z.number().int().min(0)),
+  updatedAt: z.string().datetime(),
+});
+
+export type AlbumDetail = z.infer<typeof albumDetailSchema>;
+
+export const renameAlbumInputSchema = z.object({
+  nickname: z.string().min(1).max(100),
+});
+
+export type RenameAlbumInput = z.infer<typeof renameAlbumInputSchema>;
+
+export const createInviteInputSchema = z.object({
+  role: z.enum(["editor", "viewer"]),
+});
+
+export type CreateInviteInput = z.infer<typeof createInviteInputSchema>;
+
 export const clientIdSchema = z.string().uuid();

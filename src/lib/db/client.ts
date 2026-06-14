@@ -1,4 +1,5 @@
-import { MongoClient } from "mongodb";
+import { type Collection, MongoClient } from "mongodb";
+import type { AlbumDocument } from "src/lib/schemas";
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB;
@@ -25,7 +26,9 @@ export async function getDb() {
   return client.db(dbName);
 }
 
-export async function getAlbumsCollection() {
+export async function getAlbumsCollection(): Promise<
+  Collection<AlbumDocument>
+> {
   const db = await getDb();
-  return db.collection("albums");
+  return db.collection<AlbumDocument>("albums");
 }
