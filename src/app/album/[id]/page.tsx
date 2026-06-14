@@ -9,6 +9,7 @@ import { AppShell } from "src/components/app-shell";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { useClientId } from "src/lib/client-id";
+import { getTeamFlag } from "src/lib/flags";
 import { albumKeys, albumOptions } from "src/lib/query-options";
 import { stickerOperationMutationOptions } from "src/lib/query-options/mutations";
 import { extractStickerNumber, getQuantity } from "src/lib/sticker";
@@ -228,6 +229,9 @@ export default function AlbumPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </div>
         )}
@@ -264,10 +268,11 @@ export default function AlbumPage() {
           filteredSections.map((section) => (
             <section key={section.team} className="rounded-lg border">
               <div className="border-b bg-muted/50 px-4 py-2 font-medium">
+                <span className="mr-2">{getTeamFlag(section.team)}</span>
                 {section.team}
               </div>
               <div className="grid grid-cols-5 gap-3 p-3 sm:grid-cols-6">
-                {section.stickers.map((sticker) => (
+                {section.stickers.map((sticker, index) => (
                   <StickerButton
                     key={sticker.code}
                     code={sticker.code}
@@ -276,6 +281,7 @@ export default function AlbumPage() {
                     onIncrement={() => handleIncrement(sticker.code)}
                     onDecrement={() => handleDecrement(sticker.code)}
                     disabled={isLocked}
+                    isSpecial={isSpecialSticker(sticker.code, index)}
                   />
                 ))}
               </div>
@@ -287,6 +293,22 @@ export default function AlbumPage() {
   );
 }
 
+function isSpecialSticker(code: string, indexInTeam: number): boolean {
+  if (code === "00") {
+    return true;
+  }
+  
+  if (code.startsWith("FWC")) {
+    return true;
+  }
+  
+  if (indexInTeam === 0) {
+    return true;
+  }
+  
+  return false;
+}
+
 function StickerButton({
   code,
   name,
@@ -294,6 +316,7 @@ function StickerButton({
   onIncrement,
   onDecrement,
   disabled,
+  isSpecial,
 }: {
   code: string;
   name: string;
@@ -301,6 +324,7 @@ function StickerButton({
   onIncrement: () => void;
   onDecrement: () => void;
   disabled: boolean;
+  isSpecial: boolean;
 }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
@@ -335,15 +359,20 @@ function StickerButton({
   const state =
     quantity === 0 ? "missing" : quantity === 1 ? "owned" : "duplicate";
 
+  const isGold = isSpecial && state === "missing";
+
   return (
     <button
       type="button"
       disabled={disabled}
       className={cn(
-        "relative flex aspect-square items-center justify-center rounded-full text-sm font-semibold transition-colors select-none",
-        state === "missing" && "bg-muted text-muted-foreground",
-        state === "owned" && "bg-primary text-primary-foreground",
-        state === "duplicate" && "bg-primary text-primary-foreground",
+        "relative flex aspect-square items-center justify-center rounded-[35%] text-sm font-semibold transition-colors select-none",
+        state === "missing" && !isGold && "bg-muted text-muted-foreground",
+        state === "owned" && !isGold && "bg-primary text-primary-foreground line-through",
+        state === "duplicate" &&
+          !isGold &&
+          "bg-primary text-primary-foreground line-through",
+        isGold && "bg-amber-200 text-amber-950",
         disabled && "opacity-60",
       )}
       onPointerDown={startLongPress}

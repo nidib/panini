@@ -5,7 +5,7 @@
     {
       "code": "00",
       "name": "Panini Logo",
-      "team": "We Are Panini"
+      "team": "FIFA World Cup 2026"
     },
     {
       "code": "FWC1",
@@ -46,6 +46,61 @@
       "code": "FWC8",
       "name": "USA",
       "team": "Host Countries and Cities"
+    },
+    {
+      "code": "FWC9",
+      "name": "Italy 1934",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC10",
+      "name": "Uruguay 1950",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC11",
+      "name": "West Germany 1954",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC12",
+      "name": "Brazil 1962",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC13",
+      "name": "West Germany 1974",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC14",
+      "name": "Argentina 1986",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC15",
+      "name": "Brazil 1994",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC16",
+      "name": "Brazil 2002",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC17",
+      "name": "Italy 2006",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC18",
+      "name": "Germany 2014",
+      "team": "FIFA World Cup History"
+    },
+    {
+      "code": "FWC19",
+      "name": "Argentina 2022",
+      "team": "FIFA World Cup History"
     },
     {
       "code": "MEX1",
@@ -5116,61 +5171,6 @@
       "code": "PAN20",
       "name": "Alberto Quintero",
       "team": "Panama"
-    },
-    {
-      "code": "FWC9",
-      "name": "Italy 1934",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC10",
-      "name": "Uruguay 1950",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC11",
-      "name": "West Germany 1954",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC12",
-      "name": "Brazil 1962",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC13",
-      "name": "West Germany 1974",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC14",
-      "name": "Argentina 1986",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC15",
-      "name": "Brazil 1994",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC16",
-      "name": "Brazil 2002",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC17",
-      "name": "Italy 2006",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC18",
-      "name": "Germany 2014",
-      "team": "FIFA World Cup History"
-    },
-    {
-      "code": "FWC19",
-      "name": "Argentina 2022",
-      "team": "FIFA World Cup History"
     }
   ]
 }
