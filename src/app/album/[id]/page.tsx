@@ -12,7 +12,11 @@ import { useClientId } from "src/lib/client-id";
 import { getTeamFlag } from "src/lib/flags";
 import { albumKeys, albumOptions } from "src/lib/query-options";
 import { stickerOperationMutationOptions } from "src/lib/query-options/mutations";
-import { extractStickerNumber, getQuantity } from "src/lib/sticker";
+import {
+  extractStickerNumber,
+  extractTeamPrefix,
+  getQuantity,
+} from "src/lib/sticker";
 import { cn } from "src/lib/utils";
 
 const FILTERS = [
@@ -270,6 +274,16 @@ export default function AlbumPage() {
               <div className="border-b bg-muted/50 px-4 py-2 font-medium">
                 <span className="mr-2">{getTeamFlag(section.team)}</span>
                 {section.team}
+                {(() => {
+                  const prefix = extractTeamPrefix(
+                    section.stickers[0]?.code ?? "",
+                  );
+                  return prefix ? (
+                    <span className="ml-1 text-muted-foreground">
+                      ⋅ {prefix}
+                    </span>
+                  ) : null;
+                })()}
               </div>
               <div className="grid grid-cols-5 gap-3 p-3 sm:grid-cols-6">
                 {section.stickers.map((sticker, index) => (
@@ -297,15 +311,15 @@ function isSpecialSticker(code: string, indexInTeam: number): boolean {
   if (code === "00") {
     return true;
   }
-  
+
   if (code.startsWith("FWC")) {
     return true;
   }
-  
+
   if (indexInTeam === 0) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -366,9 +380,11 @@ function StickerButton({
       type="button"
       disabled={disabled}
       className={cn(
-        "relative flex aspect-square items-center justify-center rounded-[35%] text-sm font-semibold transition-colors select-none",
+        "relative flex aspect-square items-center justify-center rounded-[35%] text-sm font-semibold select-none",
         state === "missing" && !isGold && "bg-muted text-muted-foreground",
-        state === "owned" && !isGold && "bg-primary text-primary-foreground line-through",
+        state === "owned" &&
+          !isGold &&
+          "bg-primary text-primary-foreground line-through",
         state === "duplicate" &&
           !isGold &&
           "bg-primary text-primary-foreground line-through",

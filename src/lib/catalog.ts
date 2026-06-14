@@ -17,7 +17,14 @@ export const loadAlbumCatalog = cache(
     );
     const raw = await fs.readFile(filePath, "utf-8");
     const parsed = JSON.parse(raw);
-    return albumCatalogSchema.parse(parsed);
+    const catalog = albumCatalogSchema.parse(parsed);
+
+    return {
+      ...catalog,
+      stickers: catalog.stickers.filter(
+        (sticker) => !sticker.code.endsWith("s"),
+      ),
+    };
   },
 );
 

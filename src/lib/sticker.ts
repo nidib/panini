@@ -4,6 +4,12 @@ export function extractStickerNumber(code: string): string {
   return match ? match[1] : code;
 }
 
+export function extractTeamPrefix(code: string): string | null {
+  const withoutTrailingS = code.endsWith("s") ? code.slice(0, -1) : code;
+  const match = withoutTrailingS.match(/^([A-Za-z]+)/);
+  return match ? match[1].toUpperCase() : null;
+}
+
 export function getQuantity(
   counts: Record<string, number>,
   stickerCode: string,
