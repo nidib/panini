@@ -1,0 +1,16 @@
+services:
+  mongo:
+    image: mongo:8
+    container_name: panini-mongo
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: panini
+      MONGO_INITDB_ROOT_PASSWORD: panini
+      MONGO_INITDB_DATABASE: panini
+    volumes:
+      - panini-mongo-data:/data/db
+
+volumes:
+  panini-mongo-data:

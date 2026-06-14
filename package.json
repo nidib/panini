@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "start:infra": "docker compose up -d"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",
