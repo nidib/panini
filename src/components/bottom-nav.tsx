@@ -6,9 +6,19 @@ import { usePathname } from "next/navigation";
 import { cn } from "src/lib/utils";
 
 const tabs = [
-  { href: "/", label: "Álbuns", icon: Album },
-  { href: "/stats", label: "Estatísticas", icon: BarChart3 },
-  { href: "/settings", label: "Configurações", icon: Settings },
+  { href: "/", label: "Álbuns", icon: Album, activeFor: ["/", "/album"] },
+  {
+    href: "/stats",
+    label: "Estatísticas",
+    icon: BarChart3,
+    activeFor: ["/stats"],
+  },
+  {
+    href: "/settings",
+    label: "Configurações",
+    icon: Settings,
+    activeFor: ["/settings"],
+  },
 ];
 
 export function BottomNav() {
@@ -18,7 +28,9 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background pb-safe">
       <ul className="flex items-center justify-around">
         {tabs.map((tab) => {
-          const isActive = pathname === tab.href;
+          const isActive = tab.activeFor.some((prefix) =>
+            prefix === "/" ? pathname === "/" : pathname.startsWith(prefix),
+          );
           const Icon = tab.icon;
 
           return (
