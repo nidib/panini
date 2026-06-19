@@ -26,7 +26,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background pb-safe">
-      <ul className="flex items-center justify-around">
+      <ul className="mx-auto flex max-w-md items-center justify-around">
         {tabs.map((tab) => {
           const isActive = tab.activeFor.some((prefix) =>
             prefix === "/" ? pathname === "/" : pathname.startsWith(prefix),
@@ -34,21 +34,20 @@ export function BottomNav() {
           const Icon = tab.icon;
 
           return (
-            <li key={tab.href} className="flex-1">
-              <Link
-                href={tab.href}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-                aria-current={isActive ? "page" : undefined}
-              >
-                <Icon className="size-5" />
-                <span>{tab.label}</span>
-              </Link>
-            </li>
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <Icon className="size-5" />
+              <span>{tab.label}</span>
+            </Link>
           );
         })}
       </ul>
