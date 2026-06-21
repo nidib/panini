@@ -286,7 +286,7 @@ export default function AlbumPage() {
                 })()}
               </div>
               <div className="grid grid-cols-5 gap-3 p-3 sm:grid-cols-6">
-                {section.stickers.map((sticker, index) => (
+                {section.stickers.map((sticker) => (
                   <StickerButton
                     key={sticker.code}
                     code={sticker.code}
@@ -295,7 +295,7 @@ export default function AlbumPage() {
                     onIncrement={() => handleIncrement(sticker.code)}
                     onDecrement={() => handleDecrement(sticker.code)}
                     disabled={isLocked}
-                    isSpecial={isSpecialSticker(sticker.code, index)}
+                    isSpecial={isSpecialSticker(sticker.code)}
                   />
                 ))}
               </div>
@@ -307,7 +307,7 @@ export default function AlbumPage() {
   );
 }
 
-function isSpecialSticker(code: string, indexInTeam: number): boolean {
+function isSpecialSticker(code: string): boolean {
   if (code === "00") {
     return true;
   }
@@ -316,11 +316,7 @@ function isSpecialSticker(code: string, indexInTeam: number): boolean {
     return true;
   }
 
-  if (indexInTeam === 0) {
-    return true;
-  }
-
-  return false;
+  return extractStickerNumber(code) === "1";
 }
 
 function StickerButton({
