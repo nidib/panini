@@ -148,7 +148,6 @@ export default function AlbumPage() {
         if (!term) return true;
         return (
           sticker.code.toLowerCase().includes(term) ||
-          sticker.name.toLowerCase().includes(term) ||
           sticker.team.toLowerCase().includes(term)
         );
       })
