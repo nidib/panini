@@ -51,6 +51,7 @@ export default function RootLayout({
         "font-sans",
         inter.variable,
       )}
+      suppressHydrationWarning
     >
       <body className="min-h-full">
         <Providers>{children}</Providers>
