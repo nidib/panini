@@ -1,17 +1,36 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Lock, LockOpen, Search, Share2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Download,
+  Lock,
+  LockOpen,
+  Search,
+  Share2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "src/components/app-shell";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "src/components/ui/sheet";
+import { Textarea } from "src/components/ui/textarea";
 import { useClientId } from "src/lib/client-id";
 import { getTeamFlag } from "src/lib/flags";
 import { albumKeys, albumOptions } from "src/lib/query-options";
 import { stickerOperationMutationOptions } from "src/lib/query-options/mutations";
+import type { AlbumDetail, StickerDefinition } from "src/lib/schemas";
 import {
   extractStickerNumber,
   extractTeamPrefix,
@@ -42,6 +61,8 @@ export default function AlbumPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [locked, setLocked] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const canEdit = album?.role === "owner" || album?.role === "editor";
   const isLocked = locked || !canEdit;
@@ -133,6 +154,18 @@ export default function AlbumPage() {
     };
   }, [applyPending]);
 
+  const exportText = useMemo(() => {
+    if (!album || filter === "all") return "";
+
+    return generateExportText(album, filter);
+  }, [album, filter]);
+
+  const handleCopyExport = useCallback(async () => {
+    if (!exportText) return;
+    await navigator.clipboard.writeText(exportText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [exportText]);
   const filteredSections = useMemo(() => {
     if (!album) return [];
 
@@ -172,6 +205,8 @@ export default function AlbumPage() {
         },
       ).sections;
   }, [album, filter, search]);
+
+  const exportLabel = FILTERS.find((f) => f.key === filter)?.label ?? "";
 
   return (
     <AppShell>
@@ -239,7 +274,7 @@ export default function AlbumPage() {
           </div>
         )}
 
-        <div className="flex px-4">
+        <div className="flex items-center px-4">
           {FILTERS.map((f) => (
             <button
               type="button"
@@ -255,8 +290,45 @@ export default function AlbumPage() {
               {f.label}
             </button>
           ))}
+          {filter !== "all" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setExportOpen(true)}
+              aria-label="Exportar"
+              className="shrink-0"
+            >
+              <Download className="size-5" />
+            </Button>
+          )}
         </div>
       </div>
+
+      <Sheet open={exportOpen} onOpenChange={setExportOpen}>
+        <SheetContent side="bottom">
+          <SheetHeader>
+            <SheetTitle>Exportar {exportLabel.toLowerCase()}</SheetTitle>
+            <SheetDescription>
+              Copie a lista de figurinhas do filtro atual.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-4 p-4">
+            <Textarea value={exportText} readOnly rows={12} />
+            <Button
+              onClick={handleCopyExport}
+              disabled={!exportText}
+              className="w-full"
+            >
+              {copied ? (
+                <Check className="mr-2 size-4" />
+              ) : (
+                <Copy className="mr-2 size-4" />
+              )}
+              {copied ? "Copiado" : "Copiar"}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <div className="space-y-2 p-4">
         {isLoading ? (
@@ -316,6 +388,63 @@ function isSpecialSticker(code: string): boolean {
   }
 
   return extractStickerNumber(code) === "1";
+}
+
+type ExportGroup = {
+  prefix: string;
+  teamName: string;
+  codes: string[];
+};
+
+function getExportGroup(sticker: StickerDefinition): {
+  prefix: string;
+  teamName: string;
+} {
+  const prefix = extractTeamPrefix(sticker.code);
+
+  if (!prefix || prefix === "FWC" || sticker.code === "00") {
+    return { prefix: "FWC", teamName: "FIFA World Cup 2026" };
+  }
+
+  return { prefix, teamName: sticker.team };
+}
+
+function generateExportText(
+  album: AlbumDetail,
+  filter: "missing" | "duplicates",
+): string {
+  const groups = new Map<string, ExportGroup>();
+
+  for (const sticker of album.catalog.stickers) {
+    const quantity = getQuantity(album.counts, sticker.code);
+
+    if (filter === "missing" && quantity !== 0) continue;
+    if (filter === "duplicates" && quantity <= 1) continue;
+
+    const { prefix, teamName } = getExportGroup(sticker);
+
+    let group = groups.get(prefix);
+    if (!group) {
+      group = { prefix, teamName, codes: [] };
+      groups.set(prefix, group);
+    }
+
+    const duplicateCount =
+      filter === "duplicates" ? Math.max(0, quantity - 1) : 0;
+    const suffix = duplicateCount > 1 ? ` (${duplicateCount})` : "";
+    group.codes.push(`${sticker.code}${suffix}`);
+  }
+
+  const lines: string[] = [];
+  for (const group of groups.values()) {
+    if (group.codes.length === 0) continue;
+
+    const flag = group.prefix === "FWC" ? "🏆" : getTeamFlag(group.teamName);
+
+    lines.push(`${group.prefix} ${flag}: ${group.codes.join(", ")}`);
+  }
+
+  return lines.join("\n");
 }
 
 function StickerButton({
