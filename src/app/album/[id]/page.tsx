@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import confetti from "canvas-confetti";
 import {
   ArrowLeft,
   Check,
@@ -36,6 +37,7 @@ import {
   extractTeamPrefix,
   getQuantity,
 } from "src/lib/sticker";
+import { computeTeamCompletion } from "src/lib/team-completion";
 import { cn } from "src/lib/utils";
 
 const FILTERS = [
@@ -109,6 +111,13 @@ export default function AlbumPage() {
   const handleIncrement = useCallback(
     (stickerCode: string) => {
       if (isLocked) return;
+      const before = queryClient.getQueryData<AlbumDetail>(
+        albumOptions(albumId).queryKey,
+      );
+      const beforeCompletion = before
+        ? computeTeamCompletion(before.catalog.stickers, before.counts)
+        : {};
+
       pendingRef.current[stickerCode] =
         (pendingRef.current[stickerCode] ?? 0) + 1;
       queryClient.setQueryData(albumOptions(albumId).queryKey, (old) => {
@@ -121,6 +130,25 @@ export default function AlbumPage() {
           },
         };
       });
+
+      const after = queryClient.getQueryData<AlbumDetail>(
+        albumOptions(albumId).queryKey,
+      );
+      const afterCompletion = after
+        ? computeTeamCompletion(after.catalog.stickers, after.counts)
+        : {};
+
+      for (const [team, isComplete] of Object.entries(afterCompletion)) {
+        if (isComplete && !beforeCompletion[team]) {
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 },
+          });
+          break;
+        }
+      }
+
       scheduleSync();
     },
     [albumId, isLocked, queryClient, scheduleSync],
